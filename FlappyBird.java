@@ -140,11 +140,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
 
 	public void placePipes() {
-		//-450 max
-		// int randomPipeY = 
+		int randomPipeY = random.nextInt(366);
 
 		Pipe topPipe = new Pipe(topPipeImg);
-		topPipe.y = -450;
+		topPipe.y = randomPipeY - 465; //-465 to -100 y level
 		pipes.add(topPipe);
 
 		Pipe bottomPipe = new Pipe(bottomPipeImg);
