@@ -3,9 +3,12 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 
 
-public class FlappyBird extends JPanel implements ActionListener, KeyListener {
+public class FlappyBird extends JPanel implements ActionListener, KeyListener, MouseListener {
 	int boardWidth = 360;
 	int boardHeight = 640;
 	Random random = new Random();
@@ -15,6 +18,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 	Image birdImg;
 	Image topPipeImg;
 	Image bottomPipeImg;
+	Image gameOverImg;
+	Image startButtonImg;
 
 	// Bird stuff
 	int birdX = boardWidth/7;
@@ -25,6 +30,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 	class Bird {
 		int x = birdX;
 		int y = birdY;
+		int centerX = birdX/2;
+		int centerY = birdY/2;
 		int width = birdWidth;
 		int height = birdHeight;
 		Image img;
@@ -33,8 +40,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 			this.img = img;
 		}
 	}
-
-
 	
 	// pipes
 	int pipeX = boardWidth;
@@ -45,6 +50,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 	class Pipe {
 		int x = pipeX;
 		int y = pipeY;
+		int centerX = pipeX/2;
 		int width = pipeWidth;
 		int height = pipeHeight;
 		Image img;
@@ -58,6 +64,22 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
 
 
+	// buttons
+	class Button {
+		int x = 0;
+		int y = 0;
+		int width = 0;
+		int height = 0;
+		int centerX = x + (width/2);
+		int centerY = y + (height/2);
+		Image img;
+
+		Button(Image img) {
+			this.img = img;
+		}
+	}
+
+
 
 	//game logic
 	Bird bird;
@@ -65,13 +87,22 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 	int velocityY = 0;
 	int fallSpeed = 1;
 
-	boolean justLaunched = false;
+	int gameFrame = 0;
+	int startFrameCounter = 0;
+
+	boolean justLaunched = true;
 	boolean gameLost = false;
+	boolean moveState = false;
 
 	Timer gameLoop;
 	Timer pipeTimer;
 
 	ArrayList<Pipe> pipes;
+
+	Button startButton;
+
+
+	boolean pressedInButton = false;
 
 
 	
@@ -79,12 +110,15 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 		setPreferredSize(new Dimension(boardWidth, boardHeight));
 		setFocusable(true);
 		addKeyListener(this);
+		addMouseListener(this);
 
 		// load images
 		backgroundImg = new ImageIcon(getClass().getResource("sprites/flappybirdbg.png")).getImage();
 		birdImg = new ImageIcon(getClass().getResource("sprites/flappybird.png")).getImage();
 		topPipeImg = new ImageIcon(getClass().getResource("sprites/toppipe.png")).getImage();
 		bottomPipeImg = new ImageIcon(getClass().getResource("sprites/bottompipe.png")).getImage();
+		gameOverImg = new ImageIcon(getClass().getResource("sprites/gameover.png")).getImage();
+		startButtonImg = new ImageIcon(getClass().getResource("sprites/startbutton.png")).getImage();
 
 		// load bird img
 		bird = new Bird(birdImg);
@@ -94,10 +128,15 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 		pipeTimer = new Timer(1200, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				placePipes();
+				if (!justLaunched && !gameLost) {
+					placePipes();
+				}
 			}
 		});
 		pipeTimer.start();
+
+		// load buttons
+		startButton = new Button(startButtonImg);
 
 
 		// game loop timer
@@ -122,6 +161,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 		
 		// draw bird
 		g.drawImage(bird.img, bird.x, bird.y, bird.width, bird.height, null);
+
+		// draw start button on launch
+		if(justLaunched) {
+			g.drawImage(startButtonImg, 152, 190, 56, 38, null);
+		}
 	}
 
 	public void moveFunction() {
@@ -151,6 +195,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
 
 	public void placePipes() {
+		// System.out.println("made pipes");
 		int randomPipeY = random.nextInt(366);
 
 		Pipe topPipe = new Pipe(topPipeImg);
@@ -164,20 +209,69 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 	}
 
 
+	// game start function
+	public void gameStartLoop() {
+		if (gameFrame % 10 == 0) {
+			moveState = true;
+			startFrameCounter++;
+		} else {
+			moveState = false;
+		}
+
+		if (moveState) {
+			switch (startFrameCounter) {
+				case 1 -> bird.y -= 9;
+				case 4 -> bird.y += 9;
+				case 6 -> bird.y += 9;
+				case 9 -> bird.y -= 9;
+			}
+		}
+
+		if (startFrameCounter == 10) {
+			startFrameCounter = 0;
+		}
+	}
+
+
+	// game lost function
+	public void gameLostLoop() {
+
+	}
+
+
+	// play again function
+	public void playAgain() {
+
+	}
+
+	public boolean isInsideButton(int x, int y, Button buttonName) {
+		return (x >= buttonName.x && x <= buttonName.x + buttonName.width && y >= buttonName.y && y <= buttonName.y + buttonName.height);
+	}
+
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		// System.out.println("game frame: " + gameFrame);
 		// game state check
 		if (justLaunched) {
 			// "game just started" layout
+			gameStartLoop();
+
 		} else {
 			// game is in play
 			if (bird.y >= 550 || gameLost) {
-				// losing case
+				// losing case, run game lost layout
+				gameLostLoop();
 			} else {
 				moveFunction();
 			}
 		}
 
+		if (gameFrame == 60) {
+			gameFrame = 1;
+		} else {
+			gameFrame++;
+		}
 		repaint();
 	}
 
@@ -195,5 +289,32 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
 	@Override
 	public void keyReleased(KeyEvent e) {
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		System.out.println("x: " + e.getX() + ", y: " + e.getY());
+		if (justLaunched) {	
+			if (isInsideButton(e.getX(), e.getY(), startButton)) {
+				justLaunched = false;
+				System.out.println("game start");
+			}
+		}
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
 	}
 }
