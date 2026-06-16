@@ -38,9 +38,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 	int velocityY = 0;
 	int fallSpeed = 1;
 
-		// losing condition variables
-	int topLimit = 34;
-	int bottomLimit = 340;
 
 	Timer gameLoop;
 
@@ -89,11 +86,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// bird movement
-		moveFunction();
 
-		// losing condition checker
-		if (bird.y == topLimit || bird.y == bottomLimit) {
-
+		if (bird.y >= 550) {
+			// losing case
+		} else {
+			moveFunction();
 		}
 
 		repaint();
