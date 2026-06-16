@@ -90,7 +90,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
 		// load pipes
 		pipes = new ArrayList<Pipe>();
-		pipeTimer = new Timer(1500, new ActionListener() {
+		pipeTimer = new Timer(1200, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				placePipes();
