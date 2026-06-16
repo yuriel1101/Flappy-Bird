@@ -49,6 +49,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 		int height = pipeHeight;
 		Image img;
 		boolean passed = false;
+		boolean top = false;
 
 		Pipe(Image img) {
 			this.img = img;
@@ -65,7 +66,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 	int fallSpeed = 1;
 
 	boolean justLaunched = false;
-	boolean gameEnded = false;
+	boolean gameLost = false;
 
 	Timer gameLoop;
 	Timer pipeTimer;
@@ -113,28 +114,38 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 		// draw bg
 		g.drawImage(backgroundImg, 0, 0, boardWidth, boardHeight, null);
 
-		// draw bird
-		g.drawImage(bird.img, bird.x, bird.y, bird.width, bird.height, null);
-
 		// draw pipes
 		for(int i = 0; i < pipes.size(); i++) {
 			Pipe pipe = pipes.get(i);
 			g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
 		}
+		
+		// draw bird
+		g.drawImage(bird.img, bird.x, bird.y, bird.width, bird.height, null);
 	}
 
 	public void moveFunction() {
 		// bird movement
 		velocityY += fallSpeed;
-		velocityY = Math.min(velocityY, 16);
+		velocityY = Math.min(velocityY, 16); // terminal velocity of 16 pixels per frame (?)
 		bird.y += velocityY;
-		bird.y = Math.max(bird.y, 0);
+		bird.y = Math.max(bird.y, 0); // bird wont go past the vertical limit
 
 		// pipe movement
 		for (int i = 0; i < pipes.size(); i++) {
 			Pipe pipe = pipes.get(i);
 			pipe.x += velocityX;
-
+			
+			//collision checker
+			if (pipe.top) {
+				if (((bird.x + 32) >= pipe.x && bird.x < (pipe.x + 64)) && (bird.y < (pipe.y + 512))) {
+					gameLost = true;
+				}
+			} else {
+				if (((bird.x + 32) >= pipe.x && bird.x < (pipe.x + 64)) && ((bird.y + 24) > pipe.y)) {
+					gameLost = true;
+				}
+			}
 		}
 	}
 
@@ -143,14 +154,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 		int randomPipeY = random.nextInt(366);
 
 		Pipe topPipe = new Pipe(topPipeImg);
-		topPipe.y = randomPipeY - 465; //-465 to -100 y level
+		topPipe.y = randomPipeY - 465; // -465 to -100 y level
+		topPipe.top = true; // set top status to true since it is a top pipe, not a bottom pipe. this is only for collision check
 		pipes.add(topPipe);
 
 		Pipe bottomPipe = new Pipe(bottomPipeImg);
-		bottomPipe.y = 125 + topPipe.y + 512;
+		bottomPipe.y = 125 + topPipe.y + 512; // 125 pixel gap between top and bottom pipe
 		pipes.add(bottomPipe);
-
-
 	}
 
 
@@ -161,9 +171,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 			// "game just started" layout
 		} else {
 			// game is in play
-			if (bird.y >= 550) {
+			if (bird.y >= 550 || gameLost) {
 				// losing case
-				gameEnded = true;
 			} else {
 				moveFunction();
 			}
