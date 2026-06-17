@@ -17,6 +17,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	Image topPipeImg;
 	Image bottomPipeImg;
 	Image startButtonImg;
+	Image startButtonHoveredImg;
 	Image gameOverImg;
 	Image playAgainImg;
 
@@ -69,6 +70,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		int y = 0;
 		int width = 0;
 		int height = 0;
+		boolean isPressed = false;
+		boolean isHovered = false;
 		Image img;
 
 		Button(Image img) {
@@ -119,6 +122,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		topPipeImg = new ImageIcon(getClass().getResource("sprites/toppipe.png")).getImage();
 		bottomPipeImg = new ImageIcon(getClass().getResource("sprites/bottompipe.png")).getImage();
 		startButtonImg = new ImageIcon(getClass().getResource("sprites/startbutton.png")).getImage();
+		startButtonHoveredImg = new ImageIcon(getClass().getResource("sprites/startbuttonhovered.png")).getImage();
 		gameOverImg = new ImageIcon(getClass().getResource("sprites/gameover.png")).getImage();
 		playAgainImg = new ImageIcon(getClass().getResource("sprites/playagain.png")).getImage();
 
@@ -139,14 +143,18 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 		// load buttons
 		startButton = new Button(startButtonImg);
-		playAgain = new Button(playAgainImg);
-
-
-		// setup button dimensions
 		startButton.x = 152;
 		startButton.y = 190;
 		startButton.width = 56;
 		startButton.height = 38;
+
+		playAgain = new Button(playAgainImg);
+		playAgain.x = 84;
+		playAgain.y = 190;
+		playAgain.width = 192;
+		playAgain.height = 38;
+
+
 
 
 		// game loop timer
@@ -174,7 +182,16 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 		// draw start button on launch
 		if(justLaunched) {
-			g.drawImage(startButtonImg, 152, 190, 56, 38, null);
+			if (startButton.isHovered) {
+				g.drawImage(startButtonHoveredImg, startButton.x, startButton.y, startButton.width, startButton.height, null);
+			} else {
+				g.drawImage(startButtonImg, startButton.x, startButton.y, startButton.width, startButton.height, null);
+			}
+		}
+
+		if (gameLost) {
+			// g.drawImage(gameOverImg, );
+			g.drawImage(playAgainImg, playAgain.x, playAgain.y, playAgain.width, playAgain.height, null);
 		}
 	}
 
@@ -318,7 +335,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	public void mousePressed(MouseEvent e) {
 		if (justLaunched) {	
 			if (isInsideButton(e.getX(), e.getY(), startButton)) {
-				justLaunched = false;
+				startButton.isPressed = true;
 			}
 		} else if (!justLaunched && !gameLost) {
 			velocityY = -10;
@@ -327,13 +344,28 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		if (justLaunched) {	
+			if (startButton.isPressed && isInsideButton(e.getX(), e.getY(), startButton)) {
+				justLaunched = false;
+			}
+		}
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
+		if (justLaunched) {
+			if (isInsideButton(e.getX(), e.getY(), startButton)){
+				startButton.isHovered = true;
+			}
+		}
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
+		if (justLaunched) {
+			if (!(isInsideButton(e.getX(), e.getY(), startButton))){
+				startButton.isHovered = false;
+			}
+		}
 	}
 }
