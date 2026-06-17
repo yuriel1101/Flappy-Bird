@@ -84,7 +84,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	//game logic
 	Bird bird;
 	int velocityX = -4;
-	int velocityY = 0;
+	int velocityY = -10;
 	int fallSpeed = 1;
 
 	int gameFrame = 0;
@@ -99,8 +99,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	ArrayList<Pipe> pipes;
 
+	// setting up button dimensions
 	Button startButton;
-
+	
 
 	boolean pressedInButton = false;
 
@@ -137,6 +138,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 		// load buttons
 		startButton = new Button(startButtonImg);
+
+
+		// setup button dimensions
+		startButton.x = 152;
+		startButton.y = 190;
+		startButton.width = 56;
+		startButton.height = 38;
 
 
 		// game loop timer
@@ -245,6 +253,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	}
 
 	public boolean isInsideButton(int x, int y, Button buttonName) {
+		System.out.println("butt x: " + buttonName.x + ", max butt x: " + (buttonName.x + buttonName.width) + ", butt y: " + buttonName.y + ", max butt y: " + (buttonName.y + buttonName.height));
 		return (x >= buttonName.x && x <= buttonName.x + buttonName.width && y >= buttonName.y && y <= buttonName.y + buttonName.height);
 	}
 
@@ -256,7 +265,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		if (justLaunched) {
 			// "game just started" layout
 			gameStartLoop();
-
 		} else {
 			// game is in play
 			if (bird.y >= 550 || gameLost) {
@@ -297,11 +305,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		System.out.println("x: " + e.getX() + ", y: " + e.getY());
+		System.out.println("x: " + e.getX() + ", y: " + e.getY() + ", just launched: " + justLaunched);
 		if (justLaunched) {	
 			if (isInsideButton(e.getX(), e.getY(), startButton)) {
 				justLaunched = false;
 				System.out.println("game start");
+			} else {
+				System.out.println("no button clicked.");
 			}
 		}
 	}
