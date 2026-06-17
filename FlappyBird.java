@@ -87,6 +87,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	int velocityY = -10;
 	int fallSpeed = 1;
 
+	int score = 0;
+
 	int gameFrame = 0;
 	int startFrameCounter = 0;
 
@@ -243,7 +245,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	// game lost function
 	public void gameLostLoop() {
-
+		velocityY += fallSpeed;
+		velocityY = Math.min(velocityY, 12);
+		bird.y += velocityY;
+		bird.y = Math.min(bird.y, 550);
 	}
 
 
@@ -253,7 +258,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	}
 
 	public boolean isInsideButton(int x, int y, Button buttonName) {
-		System.out.println("butt x: " + buttonName.x + ", max butt x: " + (buttonName.x + buttonName.width) + ", butt y: " + buttonName.y + ", max butt y: " + (buttonName.y + buttonName.height));
 		return (x >= buttonName.x && x <= buttonName.x + buttonName.width && y >= buttonName.y && y <= buttonName.y + buttonName.height);
 	}
 
@@ -285,8 +289,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-			velocityY = -10;
+		if (!gameLost && !justLaunched) {
+			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+				velocityY = -10;
+			}
 		}
 	}
 
@@ -305,13 +311,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		System.out.println("x: " + e.getX() + ", y: " + e.getY() + ", just launched: " + justLaunched);
 		if (justLaunched) {	
 			if (isInsideButton(e.getX(), e.getY(), startButton)) {
 				justLaunched = false;
-				System.out.println("game start");
-			} else {
-				System.out.println("no button clicked.");
 			}
 		}
 	}
