@@ -90,7 +90,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	int score = 0;
 
 	int gameFrame = 0;
-	int startFrameCounter = 0;
+	int startFrameCounter = -3;
 
 	boolean justLaunched = true;
 	boolean gameLost = false;
