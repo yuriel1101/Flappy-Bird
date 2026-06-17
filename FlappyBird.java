@@ -3,14 +3,12 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-import java.io.IOException;
 
 
 public class FlappyBird extends JPanel implements ActionListener, KeyListener, MouseListener {
 	int boardWidth = 360;
 	int boardHeight = 640;
+
 	Random random = new Random();
 
 	// Images
@@ -18,8 +16,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	Image birdImg;
 	Image topPipeImg;
 	Image bottomPipeImg;
-	Image gameOverImg;
 	Image startButtonImg;
+	Image gameOverImg;
+	Image playAgainImg;
 
 	// Bird stuff
 	int birdX = boardWidth/7;
@@ -70,8 +69,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		int y = 0;
 		int width = 0;
 		int height = 0;
-		int centerX = x + (width/2);
-		int centerY = y + (height/2);
 		Image img;
 
 		Button(Image img) {
@@ -103,6 +100,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	// setting up button dimensions
 	Button startButton;
+	Button playAgain;
 	
 
 	boolean pressedInButton = false;
@@ -120,8 +118,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		birdImg = new ImageIcon(getClass().getResource("sprites/flappybird.png")).getImage();
 		topPipeImg = new ImageIcon(getClass().getResource("sprites/toppipe.png")).getImage();
 		bottomPipeImg = new ImageIcon(getClass().getResource("sprites/bottompipe.png")).getImage();
-		gameOverImg = new ImageIcon(getClass().getResource("sprites/gameover.png")).getImage();
 		startButtonImg = new ImageIcon(getClass().getResource("sprites/startbutton.png")).getImage();
+		gameOverImg = new ImageIcon(getClass().getResource("sprites/gameover.png")).getImage();
+		playAgainImg = new ImageIcon(getClass().getResource("sprites/playagain.png")).getImage();
 
 		// load bird img
 		bird = new Bird(birdImg);
@@ -140,6 +139,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 		// load buttons
 		startButton = new Button(startButtonImg);
+		playAgain = new Button(playAgainImg);
 
 
 		// setup button dimensions
@@ -289,7 +289,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if (!gameLost && !justLaunched) {
+		if (justLaunched) {
+			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+				velocityY = -10;
+				justLaunched = false;
+			}
+		} else if (!justLaunched && !gameLost) {
 			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 				velocityY = -10;
 			}
@@ -315,6 +320,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 			if (isInsideButton(e.getX(), e.getY(), startButton)) {
 				justLaunched = false;
 			}
+		} else if (!justLaunched && !gameLost) {
+			velocityY = -10;
 		}
 	}
 
