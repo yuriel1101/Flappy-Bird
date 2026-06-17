@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -5,7 +6,7 @@ import java.util.Random;
 import javax.swing.*;
 
 
-public class FlappyBird extends JPanel implements ActionListener, KeyListener, MouseListener {
+public class FlappyBird extends JPanel implements ActionListener, KeyListener, MouseListener, MouseMotionListener {
 	int boardWidth = 360;
 	int boardHeight = 640;
 
@@ -20,6 +21,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	Image startButtonHoveredImg;
 	Image gameOverImg;
 	Image playAgainImg;
+	Image playAgainHoveredImg;
 
 	// Bird stuff
 	int birdX = boardWidth/7;
@@ -91,10 +93,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	int gameFrame = 0;
 	int startFrameCounter = -3;
+	int cooldownCounter = 0;
 
 	boolean justLaunched = true;
 	boolean gameLost = false;
 	boolean moveState = false;
+	boolean startCooldown = false;
+	boolean canPlayAgain = false;
 
 	Timer gameLoop;
 	Timer pipeTimer;
@@ -115,6 +120,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		setFocusable(true);
 		addKeyListener(this);
 		addMouseListener(this);
+		addMouseMotionListener(this);
+
+
 
 		// load images
 		backgroundImg = new ImageIcon(getClass().getResource("sprites/flappybirdbg.png")).getImage();
@@ -125,6 +133,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		startButtonHoveredImg = new ImageIcon(getClass().getResource("sprites/startbuttonhovered.png")).getImage();
 		gameOverImg = new ImageIcon(getClass().getResource("sprites/gameover.png")).getImage();
 		playAgainImg = new ImageIcon(getClass().getResource("sprites/playagain.png")).getImage();
+		playAgainHoveredImg = new ImageIcon(getClass().getResource("sprites/playagainhovered.png")).getImage();
 
 		// load bird img
 		bird = new Bird(birdImg);
@@ -150,7 +159,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 		playAgain = new Button(playAgainImg);
 		playAgain.x = 84;
-		playAgain.y = 190;
+		playAgain.y = 210;
 		playAgain.width = 192;
 		playAgain.height = 38;
 
@@ -190,8 +199,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		}
 
 		if (gameLost) {
-			// g.drawImage(gameOverImg, );
-			g.drawImage(playAgainImg, playAgain.x, playAgain.y, playAgain.width, playAgain.height, null);
+			if (playAgain.isHovered) {
+				g.drawImage(playAgainHoveredImg, playAgain.x, playAgain.y, playAgain.width, playAgain.height, null);
+			} else {
+				g.drawImage(playAgainImg, playAgain.x, playAgain.y, playAgain.width, playAgain.height, null);
+			}
 		}
 	}
 
@@ -211,12 +223,19 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 			if (pipe.top) {
 				if (((bird.x + 32) >= pipe.x && bird.x < (pipe.x + 64)) && (bird.y < (pipe.y + 512))) {
 					gameLost = true;
+					startCooldown = true;
 				}
 			} else {
 				if (((bird.x + 32) >= pipe.x && bird.x < (pipe.x + 64)) && ((bird.y + 24) > pipe.y)) {
 					gameLost = true;
+					startCooldown = true;
 				}
 			}
+		}
+
+		if (bird.y >= 550) {
+			gameLost = true;
+			startCooldown = true;
 		}
 	}
 
@@ -265,13 +284,29 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		velocityY += fallSpeed;
 		velocityY = Math.min(velocityY, 12);
 		bird.y += velocityY;
-		bird.y = Math.min(bird.y, 550);
+		bird.y = Math.min(bird.y, 556);
+
+		if (startCooldown) {
+			if (cooldownCounter <= 30) {
+				cooldownCounter++;
+				canPlayAgain = false;
+			} else {
+				cooldownCounter = 0;
+				startCooldown = false;
+				canPlayAgain = true;
+			}
+		}
 	}
 
 
 	// play again function
 	public void playAgain() {
-
+		if (canPlayAgain) {
+			pipes.clear();
+			bird.y = boardHeight/2;
+			justLaunched = true;
+			gameLost = false;
+		}
 	}
 
 	public boolean isInsideButton(int x, int y, Button buttonName) {
@@ -281,14 +316,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// System.out.println("game frame: " + gameFrame);
 		// game state check
 		if (justLaunched) {
 			// "game just started" layout
 			gameStartLoop();
 		} else {
 			// game is in play
-			if (bird.y >= 550 || gameLost) {
+			if (gameLost) {
 				// losing case, run game lost layout
 				gameLostLoop();
 			} else {
@@ -311,24 +345,15 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 				velocityY = -10;
 				justLaunched = false;
 			}
-		} else if (!justLaunched && !gameLost) {
+		} else if (gameLost) {
+			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+				playAgain();
+			}
+		} else {
 			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 				velocityY = -10;
 			}
 		}
-	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-	}
-
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
 	}
 
 	@Override
@@ -337,7 +362,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 			if (isInsideButton(e.getX(), e.getY(), startButton)) {
 				startButton.isPressed = true;
 			}
-		} else if (!justLaunched && !gameLost) {
+		} else if (gameLost) {
+			if (isInsideButton(e.getX(), e.getY(), playAgain)) {
+				playAgain.isPressed = true;
+			}
+		} else {
 			velocityY = -10;
 		}
 	}
@@ -346,26 +375,54 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	public void mouseReleased(MouseEvent e) {
 		if (justLaunched) {	
 			if (startButton.isPressed && isInsideButton(e.getX(), e.getY(), startButton)) {
+				velocityY = -10;
 				justLaunched = false;
+			}
+		} else if (gameLost) {
+			if (playAgain.isPressed && isInsideButton(e.getX(), e.getY(), playAgain)) {
+				playAgain();
 			}
 		}
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent e) {
+	public void mouseMoved(MouseEvent e) {
 		if (justLaunched) {
 			if (isInsideButton(e.getX(), e.getY(), startButton)){
 				startButton.isHovered = true;
+			} else {
+				startButton.isHovered = false;
+			}
+		} else if (gameLost) {
+			if (isInsideButton(e.getX(), e.getY(), playAgain)){
+				playAgain.isHovered = true;
+			} else {
+				playAgain.isHovered = false;
 			}
 		}
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+	}
+	
+	@Override
+	public void mouseDragged(MouseEvent e) {
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		if (justLaunched) {
-			if (!(isInsideButton(e.getX(), e.getY(), startButton))){
-				startButton.isHovered = false;
-			}
-		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
 	}
 }
