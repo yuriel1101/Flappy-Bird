@@ -19,9 +19,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	Image bottomPipeImg;
 	Image startButtonImg;
 	Image startButtonHoveredImg;
-	Image gameOverImg;
+	Image scoreboardImg;
 	Image playAgainImg;
 	Image playAgainHoveredImg;
+	Image numbersImg;
 
 	// Bird stuff
 	int birdX = boardWidth/7;
@@ -90,6 +91,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	int fallSpeed = 1;
 
 	int score = 0;
+	int tempScore = 0;
+	int scoreDigits = 0;
 
 	int gameFrame = 0;
 	int startFrameCounter = -3;
@@ -131,9 +134,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		bottomPipeImg = new ImageIcon(getClass().getResource("sprites/bottompipe.png")).getImage();
 		startButtonImg = new ImageIcon(getClass().getResource("sprites/startbutton.png")).getImage();
 		startButtonHoveredImg = new ImageIcon(getClass().getResource("sprites/startbuttonhovered.png")).getImage();
-		gameOverImg = new ImageIcon(getClass().getResource("sprites/gameover.png")).getImage();
+		scoreboardImg = new ImageIcon(getClass().getResource("sprites/scoreboard.png")).getImage();
 		playAgainImg = new ImageIcon(getClass().getResource("sprites/playagain.png")).getImage();
 		playAgainHoveredImg = new ImageIcon(getClass().getResource("sprites/playagainhovered.png")).getImage();
+		numbersImg = new ImageIcon(getClass().getResource("sprites/numbers.png")).getImage();
 
 		// load bird img
 		bird = new Bird(birdImg);
@@ -171,6 +175,17 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		gameLoop.start();
 	}
 
+	public int countScoreDigits(int score) {
+		scoreDigits = 0;
+		tempScore = score;
+		do {
+			tempScore %= 10;
+			scoreDigits++;
+		} while(tempScore > 0);
+
+		return scoreDigits;
+	}
+
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		draw(g);
@@ -199,10 +214,19 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		}
 
 		if (gameLost) {
+			// show proper playAgain button (hovered or not)
 			if (playAgain.isHovered) {
 				g.drawImage(playAgainHoveredImg, playAgain.x, playAgain.y, playAgain.width, playAgain.height, null);
 			} else {
 				g.drawImage(playAgainImg, playAgain.x, playAgain.y, playAgain.width, playAgain.height, null);
+			}
+
+			// draw scoreboard
+			g.drawImage(scoreboardImg, ((boardWidth/2) - 112), 111, 224, 92, null);
+
+			// draw score
+			if (countScoreDigits(score) == 1) {
+
 			}
 		}
 	}
@@ -257,6 +281,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	// game start function
 	public void gameStartLoop() {
+		score = 0;
+
 		if (gameFrame % 10 == 0) {
 			moveState = true;
 			startFrameCounter++;
