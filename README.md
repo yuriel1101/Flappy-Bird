@@ -2,7 +2,7 @@
 
 This is a mini-project by Rex Uriel I. Villaflores. It is a simple recreation of the game Flappy Bird using Java. The "Best Score" feature is not implemented :'(.
 
-To run Java programs, you will need Java Development Kit (JDK) installed on your device. Installation can be found [here](https://www.oracle.com/java/technologies/downloads/)
+To run Java programs, you will need Java Development Kit (JDK) installed on your device. Installation can be found [here](https://www.oracle.com/java/technologies/downloads/).
 
 # How to run
 
