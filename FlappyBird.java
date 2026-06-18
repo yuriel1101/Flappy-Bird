@@ -25,6 +25,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	Image scoreboardImg;
 	Image playAgainImg;
 	Image playAgainHoveredImg;
+	Image scoreCounterImg;
 	BufferedImage numbersImg;
 	BufferedImage[] numberList;
 
@@ -96,7 +97,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 	int score = 0;
 	int tempScore = 0;
-	int scoreDigits = 0;
+	int scoreDigit = 0;
+
+	int[] scoreDigits;
 
 	int gameFrame = 0;
 	int startFrameCounter = -3;
@@ -138,6 +141,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		bottomPipeImg = new ImageIcon(getClass().getResource("sprites/bottompipe.png")).getImage();
 		startButtonImg = new ImageIcon(getClass().getResource("sprites/startbutton.png")).getImage();
 		startButtonHoveredImg = new ImageIcon(getClass().getResource("sprites/startbuttonhovered.png")).getImage();
+		scoreCounterImg = new ImageIcon(getClass().getResource("sprites/scorecounter.png")).getImage();
 		scoreboardImg = new ImageIcon(getClass().getResource("sprites/scoreboard.png")).getImage();
 		playAgainImg = new ImageIcon(getClass().getResource("sprites/playagain.png")).getImage();
 		playAgainHoveredImg = new ImageIcon(getClass().getResource("sprites/playagainhovered.png")).getImage();
@@ -181,13 +185,23 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		gameLoop.start();
 	}
 
-	public int countScoreDigits(int score) {
-		scoreDigits = 0;
+	public int[] countScoreDigits(int score) {
+		int length = 1;
+		scoreDigit = 0;
 		tempScore = score;
-		do {
-			scoreDigits++;
+
+		while (tempScore > 9) {
+			length++;
 			tempScore /= 10;
-		} while(tempScore % 10 > 0);
+		}
+
+		tempScore = score;
+		scoreDigits = new int[length];
+
+		for (int i = 0; i < length; i++) {
+			scoreDigits[i] = tempScore % 10;
+			tempScore /= 10;
+		}
 
 		return scoreDigits;
 	}
@@ -230,6 +244,19 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		// draw bird
 		g.drawImage(bird.img, bird.x, bird.y, bird.width, bird.height, null);
 
+		// draw score counter
+		if (!gameLost && !justLaunched) {
+			int[] scoreDigits = countScoreDigits(score);
+
+			int startingX = 158;
+			g.drawImage(scoreCounterImg, 5, 5, 147, 27, null);
+			for (int i = scoreDigits.length - 1; i >= 0; i--) {
+				int currentDigit = scoreDigits[i];
+				g.drawImage(numberList[currentDigit], startingX, 8, 21, 21, null);
+				startingX += 27;
+			}
+		}
+
 		// draw start button on launch
 		if(justLaunched) {
 			if (startButton.isHovered) {
@@ -248,11 +275,22 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 			}
 
 			// draw scoreboard
-			g.drawImage(scoreboardImg, ((boardWidth/2) - 112), 111, 224, 92, null); // double actual size in pixels 34x 19y
+			g.drawImage(scoreboardImg, 68, 111, 224, 92, null); // double actual size in pixels 34x 19y
 
 			// draw score
-			switch (countScoreDigits(score)) {
-				case 1 -> g.drawImage(numberList[score], 125, 155, 21, 21, null);
+			int[] scoreDigits = countScoreDigits(score);
+
+			int targetCenter = 135;
+			int digitWidth = 21;
+			int digitSpacing = 6;
+
+			int totalWidth = (digitWidth + digitSpacing) * scoreDigits.length - digitSpacing;
+			int startingX = targetCenter - (totalWidth/2);
+
+			for (int i = scoreDigits.length - 1; i >= 0; i--) {
+				int currentDigit = scoreDigits[i];
+				g.drawImage(numberList[currentDigit], startingX, 155, 21, 21, null);
+				startingX += (digitWidth + digitSpacing);
 			}
 		}
 	}
@@ -370,6 +408,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 			bird.y = boardHeight/2;
 			justLaunched = true;
 			gameLost = false;
+			canPlayAgain = false;
+			cooldownCounter = 0;
 		}
 	}
 
