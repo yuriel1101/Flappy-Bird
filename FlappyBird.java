@@ -4,6 +4,9 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 
 
 public class FlappyBird extends JPanel implements ActionListener, KeyListener, MouseListener, MouseMotionListener {
@@ -22,7 +25,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 	Image scoreboardImg;
 	Image playAgainImg;
 	Image playAgainHoveredImg;
-	Image numbersImg;
+	BufferedImage numbersImg;
+	BufferedImage[] numberList;
 
 	// Bird stuff
 	int birdX = boardWidth/7;
@@ -137,7 +141,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		scoreboardImg = new ImageIcon(getClass().getResource("sprites/scoreboard.png")).getImage();
 		playAgainImg = new ImageIcon(getClass().getResource("sprites/playagain.png")).getImage();
 		playAgainHoveredImg = new ImageIcon(getClass().getResource("sprites/playagainhovered.png")).getImage();
-		numbersImg = new ImageIcon(getClass().getResource("sprites/numbers.png")).getImage();
+
+		// load numbers
+		cropNumbers();
 
 		// load bird img
 		bird = new Bird(birdImg);
@@ -179,11 +185,31 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		scoreDigits = 0;
 		tempScore = score;
 		do {
-			tempScore %= 10;
 			scoreDigits++;
-		} while(tempScore > 0);
+			tempScore /= 10;
+		} while(tempScore % 10 > 0);
 
 		return scoreDigits;
+	}
+
+	public void cropNumbers() {
+		numberList = new BufferedImage[10];
+
+		try {
+			numbersImg = ImageIO.read(FlappyBird.class.getResource("sprites/numbers.png"));
+			int numberWidth = 84;
+			int numberHeight = 84;
+			int startX = 13;
+			int startY = 13;
+			int spacing = 24;
+
+			for (int i = 0; i < 10; i++) {
+				int currentX = startX + ((spacing + numberWidth) * i);
+				numberList[i] = numbersImg.getSubimage(currentX, startY, numberWidth, numberHeight);
+			}
+		} catch (IOException | NullPointerException e) {
+			System.err.println("Error loading the sprite sheet: " + e.getMessage());
+		}
 	}
 
 	public void paintComponent(Graphics g) {
@@ -222,11 +248,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 			}
 
 			// draw scoreboard
-			g.drawImage(scoreboardImg, ((boardWidth/2) - 112), 111, 224, 92, null);
+			g.drawImage(scoreboardImg, ((boardWidth/2) - 112), 111, 224, 92, null); // double actual size in pixels 34x 19y
 
 			// draw score
-			if (countScoreDigits(score) == 1) {
-
+			switch (countScoreDigits(score)) {
+				case 1 -> g.drawImage(numberList[score], 125, 155, 21, 21, null);
 			}
 		}
 	}
@@ -242,14 +268,25 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		for (int i = 0; i < pipes.size(); i++) {
 			Pipe pipe = pipes.get(i);
 			pipe.x += velocityX;
+			pipe.centerX = pipe.x/2;
 			
-			//collision checker
+			// pipe state checker
 			if (pipe.top) {
+				// check if pipe is "scored"
+				if (pipe.centerX < bird.centerX) {						
+					if (!pipe.passed) {
+						pipe.passed = true;
+						score++;
+					}
+				}
+
+				// check if bird touches pipe (losing)
 				if (((bird.x + 32) >= pipe.x && bird.x < (pipe.x + 64)) && (bird.y < (pipe.y + 512))) {
 					gameLost = true;
 					startCooldown = true;
 				}
 			} else {
+				// check if bird touches pipe (losing)
 				if (((bird.x + 32) >= pipe.x && bird.x < (pipe.x + 64)) && ((bird.y + 24) > pipe.y)) {
 					gameLost = true;
 					startCooldown = true;
@@ -257,6 +294,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 			}
 		}
 
+		// losing case
 		if (bird.y >= 550) {
 			gameLost = true;
 			startCooldown = true;
