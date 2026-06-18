@@ -1,6 +1,6 @@
 # Flappy-Bird
 
-This is a mini-project by Rex Uriel I. Villaflores. It is a simple recreation of the game Flappy Bird using Java. The "Best Score" feature is still not done.
+This is a mini-project by Rex Uriel I. Villaflores. It is a simple recreation of the game Flappy Bird using Java. The "Best Score" feature is not implemented :'(.
 
 # How to run
 
