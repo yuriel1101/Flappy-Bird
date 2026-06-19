@@ -341,8 +341,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 
 
 	public void placePipes() {
-		// System.out.println("made pipes");
-		int randomPipeY = random.nextInt(366);
+		int randomPipeY = random.nextInt(341);
 
 		Pipe topPipe = new Pipe(topPipeImg);
 		topPipe.y = randomPipeY - 465; // -465 to -100 y level
@@ -350,7 +349,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		pipes.add(topPipe);
 
 		Pipe bottomPipe = new Pipe(bottomPipeImg);
-		bottomPipe.y = 175 + topPipe.y + 512; // 125 pixel gap between top and bottom pipe
+		bottomPipe.y = 150 + topPipe.y + 512; // 150 pixel gap between top and bottom pipe
 		pipes.add(bottomPipe);
 	}
 
