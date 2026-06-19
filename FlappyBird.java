@@ -350,7 +350,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener, M
 		pipes.add(topPipe);
 
 		Pipe bottomPipe = new Pipe(bottomPipeImg);
-		bottomPipe.y = 200 + topPipe.y + 512; // 125 pixel gap between top and bottom pipe
+		bottomPipe.y = 175 + topPipe.y + 512; // 125 pixel gap between top and bottom pipe
 		pipes.add(bottomPipe);
 	}
 
